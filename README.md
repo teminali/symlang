@@ -10,6 +10,7 @@
 ```
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Donate: Crypto](https://img.shields.io/badge/Donate-Crypto-yellow.svg)](DONATE.md)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://www.python.org/)
 [![Tests: Passing](https://img.shields.io/badge/Tests-100%25%20Passing-success.svg)](tests/)
 [![Peak Compression](https://img.shields.io/badge/Max%20Compression-99.6%25-orange.svg)](#-the-compression-hierarchy)
@@ -181,6 +182,12 @@ symlang/
 ├── pyproject.toml            # PEP 517/621 package metadata
 └── LICENSE                   # MIT License
 ```
+
+---
+
+## 💖 Support this work
+
+`symlang` is 100% free and open-source. If this saved you time, context tokens, or API compute bills, [a coffee's worth of crypto](DONATE.md) is a genuinely great way to say so. It stays free either way.
 
 ---
 
