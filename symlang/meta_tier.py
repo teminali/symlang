@@ -1,15 +1,23 @@
-"""Meta-Tier Mathematical Compression & Exact Invertible Parser.
+"""Meta-Tier encodings for ONE pre-agreed grammar (294,912 states) and its exact parser.
 
-Provides mathematical layers that compress Tier 6 (56 characters) further down to:
+Scope, stated plainly: every layer below encodes a state of a single fixed 11-slot grammar (see DOMAIN_SLOTS and
+TOTAL_STATES). Because sender and receiver share that closed codebook, a state fits in 18.17 bits, so Layers 11 and 12
+can be 3 ASCII characters or one Unicode code point. That is a property of the shared codebook, NOT general text
+compression: arbitrary text is not in the grammar and cannot be encoded here. Character counts below are not token
+counts; measure tokens with the target tokenizer (see benchmark_tokens.py).
+
+Layers (character counts for the one sample sentence):
 - Layer 7:  SymTensor (Algebraic State Tensor Ψ - 49 chars)
 - Layer 8:  SymRadix (Canonical Position Vector Ω - 47 chars)
-- Layer 9A: SymBase85 (Exact Radix-85 Stream - 15 chars)
-- Layer 9B: SymRune (16-bit Mathematical Rune Packing - 6 chars)
-- Layer 10: SymGodel (Bijective BigInteger N ∈ ℕ)
-- Layer 11: SymTriad (3 ASCII Characters - 98.90% reduction)
-- Layer 12: SymSingular (1 Single Unicode Character - 99.63% reduction!)
+- Layer 9A: SymBase85 (Radix-85 stream of slot indices - 15 chars)
+- Layer 9B: SymRune (16-bit rune packing of slot indices - 6 chars)
+- Layer 10: SymGodel (integer N from the slot-index bytes)
+- Layer 11: SymTriad (the state id in 3 ASCII characters)
+- Layer 12: SymSingular (the state id as 1 Unicode code point)
 
-Includes 100% mathematically proven reversible parser (Bijection Theorem).
+What is verified: parse -> AST -> encode -> decode -> emit_tier6 is the identity for every in-domain state
+(tests/test_meta_tier.py). Out-of-domain slot values and out-of-range state ids raise ValueError instead of being
+silently remapped.
 """
 
 import re
@@ -34,6 +42,11 @@ DOMAIN_SLOTS = [
 ]
 
 DOMAINS_MAP = {name: {val: i for i, val in enumerate(vals)} for name, vals in DOMAIN_SLOTS}
+
+# Size of the one pre-agreed grammar: the product of the slot cardinalities (4*3*4*4*4*2*4*2*2*4*3 = 294,912).
+TOTAL_STATES = 1
+for _name, _vals in DOMAIN_SLOTS:
+    TOTAL_STATES *= len(_vals)
 
 
 @dataclass(frozen=True)
@@ -253,7 +266,7 @@ class MetaTierCodec:
         return MetaTierCodec._index_bytes_to_ast(raw_bytes)
 
     # -------------------------------------------------------------
-    # Layer 11: SymTriad (Exact 3 ASCII Characters - 98.90% reduction)
+    # Layer 11: SymTriad (the state id as 3 ASCII characters; needs the shared codebook)
     # -------------------------------------------------------------
     @staticmethod
     def encode_layer11_triad(ast: Tier6AST) -> str:
@@ -269,16 +282,29 @@ class MetaTierCodec:
 
     @staticmethod
     def decode_layer11_triad(triad_str: str) -> Tier6AST:
-        """Inverts 3 ASCII characters back into Tier6AST."""
+        """Inverts the canonical 3-character triad back into a Tier6AST.
+
+        Strict on purpose: Layer 11 is a bijection between the 294,912 states and their codes ("one state, one code"),
+        so only the canonical spelling is accepted. Each character must be in '!'..'u' (the 85 digits) and the value
+        must be a state id in [0, TOTAL_STATES). Anything else (wrong length, a character outside '!'..'u' such as the
+        alias '!v!', an id past the last state) raises ValueError instead of being silently mapped onto some state.
+        """
         if len(triad_str) != 3:
             raise ValueError(f"Expected 3 ASCII characters, got {len(triad_str)}")
         val = 0
         for c in triad_str:
-            val = val * 85 + (ord(c) - 33)
-        return MetaTierCodec._state_id_to_ast(val)
+            digit = ord(c) - 33
+            if not 0 <= digit < 85:
+                raise ValueError(
+                    f"{triad_str!r} is not a canonical triad: {c!r} is outside '!'..'u'; each of the 3 characters "
+                    f"must be one of the 85 digits '!'..'u' (a decoder that accepted other spellings would map "
+                    f"several codes onto one state)"
+                )
+            val = val * 85 + digit
+        return MetaTierCodec._state_id_to_ast(val)  # ValueError if val >= TOTAL_STATES
 
     # -------------------------------------------------------------
-    # Layer 12: SymSingular (Exact 1 Single Unicode Glyph - 99.63% reduction!)
+    # Layer 12: SymSingular (the state id as 1 code point; needs the shared codebook)
     # -------------------------------------------------------------
     @staticmethod
     def encode_layer12_singular(ast: Tier6AST) -> str:
@@ -305,14 +331,23 @@ class MetaTierCodec:
         state_id = 0
         multiplier = 1
         for (slot_name, values), term in zip(DOMAIN_SLOTS, vec):
-            idx = values.index(term) if term in values else 0
-            state_id += idx * multiplier
+            # A term outside the closed domain has no coordinate in the 294,912-state space.
+            # (It used to be silently mapped to index 0, which made Layers 11/12 lossy without saying so.)
+            if term not in values:
+                raise ValueError(
+                    f"'{term}' is not in the closed domain of slot '{slot_name}' {values}; "
+                    f"it has no Layer 11/12 state id"
+                )
+            state_id += values.index(term) * multiplier
             multiplier *= len(values)
         return state_id
 
     @staticmethod
     def _state_id_to_ast(state_id: int) -> Tier6AST:
         """Reconstructs AST from mixed-radix state integer."""
+        if not (0 <= state_id < TOTAL_STATES):
+            # Without this check ids >= TOTAL_STATES silently alias onto valid states.
+            raise ValueError(f"state id {state_id} is outside [0, {TOTAL_STATES}); not a state of this grammar")
         vec = []
         rem = state_id
         for slot_name, values in DOMAIN_SLOTS:
@@ -348,7 +383,7 @@ class MetaTierCodec:
                 if head < len(values):
                     vec.append(values[head])
                 else:
-                    vec.append(values[0])
+                    raise ValueError(f"index {head} is outside slot '{slot_name}' ({len(values)} values)")
             else:
                 length = head & 0x7F
                 term = raw_bytes[i : i + length].decode("utf-8")
@@ -359,7 +394,7 @@ class MetaTierCodec:
 
 
 def verify_mathematical_roundtrip(tier6_input: str) -> Dict[str, Any]:
-    """Mathematical verification test that validates 100% exact roundtrip across all meta-layers."""
+    """Checks that Layers 7, 8, 11 and 12 reproduce `tier6_input` exactly (one grammar; says nothing about other text)."""
     ast_orig = Tier6Parser.parse(tier6_input)
     
     l7 = MetaTierCodec.encode_layer7_tensor(ast_orig)

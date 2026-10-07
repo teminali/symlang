@@ -1,7 +1,12 @@
-"""Metrics module for calculating compression ratios across tokenizers, character sets, and bytes."""
+"""Metrics: compression ratios in characters, bytes and TOKENS, plus Shannon entropy.
+
+Characters and bytes are not what an LLM bills or reads; tokens are, and they are tokenizer-specific. A representation
+can lose 70% of its characters and still cost several times the tokens (see benchmark_tokens.py). Reductions here are
+signed: a negative percentage means the "compressed" form is BIGGER, and it is reported as such.
+"""
 
 import math
-from typing import Dict, Any
+from typing import Any, Callable, Dict, Tuple
 
 try:
     import tiktoken
@@ -10,6 +15,26 @@ try:
 except Exception:
     ENC_CL100K = None
     ENC_O200K = None
+
+
+def estimate_tokens(text: str) -> int:
+    """Conservative token estimate used ONLY when tiktoken is unavailable (name: 'estimate').
+
+    ASCII text is ~4 characters per token; every non-ASCII character is counted as 3 tokens (byte-fallback BPE spends
+    2-4 tokens on rare code points, so rune-packed text is never under-counted into a fake saving).
+    """
+    ascii_chars = sum(1 for c in text if ord(c) < 128)
+    return -(-ascii_chars // 4) + 3 * (len(text) - ascii_chars)
+
+
+def get_token_counter(encoding: str = "cl100k_base") -> Tuple[str, Callable[[str], int]]:
+    """Return (name, counter) for a tiktoken encoding, or the conservative estimator if tiktoken cannot load it."""
+    try:
+        import tiktoken
+        enc = tiktoken.get_encoding(encoding)
+        return f"tiktoken:{encoding}", lambda t: len(enc.encode(t, disallowed_special=()))
+    except Exception:
+        return "estimate:chars/4+3*non_ascii", estimate_tokens
 
 
 def calculate_entropy(text: str) -> float:

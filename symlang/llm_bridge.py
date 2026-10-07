@@ -1,7 +1,9 @@
-"""Neuro-Symbolic LLM Bridge.
+"""LLM bridge for the one pre-agreed grammar (see symlang.meta_tier).
 
-Connects ultra-compressed Layer 9B Runes with LLM instruction prompts
-and deterministically parses LLM outputs back into validated Runes.
+Turns Layer 9B runes / Layer 8 radix states of that grammar into an instruction prompt, and parses an LLM reply that
+contains a Layer 8, Layer 7 or Tier 6 block back into an AST and runes. It only understands that grammar:
+`parse_llm_response` raises ValueError on anything else (there is no free-text fallback), and nothing here has been
+measured against a real model. A prompt that has to explain the notation also costs tokens; weigh that before use.
 """
 
 import re

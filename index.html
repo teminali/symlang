@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SymLang: Symbolic Ultra-Compressed English Language Studio & Meta-Tiers</title>
+  <title>SymLang Studio: One Fixed Grammar, Measured</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -203,7 +203,7 @@
 
     .stats-bar {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 12px;
       margin-top: 18px;
       padding-top: 16px;
@@ -345,6 +345,62 @@
       gap: 10px;
     }
 
+    .scope-card {
+      border-color: rgba(245, 158, 11, 0.45);
+    }
+
+    .scope-card ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+
+    .scope-card li {
+      margin-bottom: 6px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0 4px;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+
+    .btn-action:hover {
+      background: var(--primary);
+    }
+
+    .own-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b1120;
+      color: #e2e8f0;
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      margin-top: 8px;
+    }
+
+    .verdict-ok { color: #34d399; font-weight: 700; }
+    .verdict-bad { color: #fb7185; font-weight: 700; }
+    .reduction-badge.worse { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+
     .step-badge {
       background: rgba(6, 182, 212, 0.2);
       color: #38bdf8;
@@ -357,12 +413,27 @@
 <body>
   <div class="container">
     <header>
-      <div class="badge">Information Theory & Mathematical AST Studio</div>
-      <h1>Symbolic Ultra-Compressed English</h1>
+      <div class="badge">Experimental &bull; alpha &bull; one fixed grammar</div>
+      <h1>Symbolic Encodings of One Grammar</h1>
       <p class="subtitle">
-        Exploring the absolute mathematical limits of language compression: from natural English (273 chars) down to Tier 6 (56 chars) and Meta-Layers down to 6 Unicode runes with 100% mathematically proven bijectivity.
+        A viewer for one pre-agreed grammar of 294,912 sentences. The 273-character sentence below is one state of it, and every figure on this page is for that one sentence. This is not general text compression.
       </p>
     </header>
+
+    <!-- Scope: what the numbers do and do not mean -->
+    <div class="card scope-card">
+      <div class="card-title">
+        <span>What these numbers do and do not mean</span>
+        <span class="tag">Read first</span>
+      </div>
+      <ul>
+        <li>The frame and meta-layer results hold for <strong>one</strong> pre-agreed grammar of <strong>294,912</strong> sentences (18.17 bits). Sender and receiver must hold the same codebook. Text outside the grammar cannot be encoded by these layers; the token-aware router sends it Direct (0% saving).</li>
+        <li>Character reduction is not token reduction. The one-code-point Layer 12 glyph costs 4 cl100k tokens, not 1, and a model without the codebook cannot read <code>!!!</code>.</li>
+        <li>The generic lossless codecs (zlib+runes, zlib+base85) cost <strong>more</strong> LLM tokens than the raw text: 1.8-3.3x for runes and 0.9-1.6x for Base85 (README, first 6,000 characters of three files, cl100k and o200k). Use them for storage or transport, not prompts.</li>
+        <li>Tiers 1-3 are lossy abbreviations with no decoder guarantee. Tier 6 and Layers 7-12 are exact only for states of the grammar.</li>
+        <li>Token counts in the tables are static, measured offline with tiktoken (<code>benchmark_tokens.py</code>). Characters and bytes are computed in this page. No model was run, and there is no speed claim.</li>
+      </ul>
+    </div>
 
     <!-- Original Target Sentence -->
     <div class="card">
@@ -379,7 +450,7 @@
     <div class="card">
       <div class="card-title">
         <span>Interactive Compression Explorer</span>
-        <span class="tag">Standard Tiers (1-6) & Meta-Tiers (7-10)</span>
+        <span class="tag">Tiers 1-6 (abbreviations) &amp; Layers 7-12 (one grammar)</span>
       </div>
 
       <div class="tier-nav" id="tierNav">
@@ -392,7 +463,7 @@
 
         <div class="meter-container">
           <div class="meter-label">
-            <span>Compression Reduction</span>
+            <span>Character reduction (not token reduction)</span>
             <span id="reductionPct">0%</span>
           </div>
           <div class="meter-track">
@@ -411,32 +482,60 @@
           </div>
           <div class="stat-item">
             <div class="stat-val" id="statTokens">0</div>
-            <div class="stat-lbl">GPT-4 Tokens</div>
+            <div class="stat-lbl">cl100k tokens (offline)</div>
           </div>
           <div class="stat-item">
             <div class="stat-val highlight" id="statSaving">-0%</div>
-            <div class="stat-lbl">Char Reduction</div>
+            <div class="stat-lbl">Char change</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="statTokChange">0%</div>
+            <div class="stat-lbl">Token change vs raw</div>
           </div>
         </div>
       </div>
 
-      <!-- Live Bijective Verification Box -->
+      <!-- In-page grammar check (runs here, no network) -->
       <div class="roundtrip-box">
         <div style="font-size: 0.88rem; font-weight: 700; color: #f1f5f9; margin-bottom: 10px;">
-          🔬 Mathematical Round-Trip Parser Verification (E &comp; P = id)
+          Grammar check, computed in this page (no network): state &rarr; codes &rarr; state
         </div>
         <div class="roundtrip-step">
-          <span class="step-badge">INPUT</span>
-          <span style="color: #94a3b8;" id="rtInput">...</span>
+          <span class="step-badge">STATE</span>
+          <span style="color: #94a3b8;" id="rtState">...</span>
         </div>
         <div class="roundtrip-step">
-          <span class="step-badge">PARSED AST</span>
-          <span style="color: #cbd5e1;" id="rtAst">AST(trigger='M', target='PC', deg='~0', dur='1-3m', cond='1st:max', alloc='35-55G', hw='RAM+GPU', win='win')</span>
+          <span class="step-badge">TIER 6</span>
+          <span style="color: #cbd5e1;" id="rtTier6">...</span>
         </div>
         <div class="roundtrip-step">
-          <span class="step-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">RECONSTRUCTED TIER 6</span>
-          <span style="color: #34d399; font-weight: 700;" id="rtTier6">▶M⇒PC~0 1-3m(1st:max).S:35-55G→RAM+GPU.✓ok.⏳¬✕win:win=👁S</span>
+          <span class="step-badge">LAYER 8</span>
+          <span style="color: #cbd5e1;" id="rtRadix">...</span>
         </div>
+        <div class="roundtrip-step">
+          <span class="step-badge">LAYER 11</span>
+          <span style="color: #cbd5e1;" id="rtTriad">...</span>
+        </div>
+        <div class="roundtrip-step">
+          <span class="step-badge">LAYER 12</span>
+          <span style="color: #cbd5e1;" id="rtGlyph">...</span>
+        </div>
+        <div class="roundtrip-step">
+          <span class="step-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">DECODED BACK</span>
+          <span id="rtResult">...</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn-action" onclick="randomState()">Random state</button>
+          <button class="btn-action" onclick="checkAllStates()">Check all 294,912 states</button>
+        </div>
+        <div class="roundtrip-step" style="margin-top: 6px;">
+          <span id="rtAll" style="color: #94a3b8;">The full check runs in your browser (a second or two). It proves the code &harr; state bijection for this grammar only; it says nothing about other text or about token cost.</span>
+        </div>
+        <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 14px;">
+          Try a Tier 6 string of your own (outside the grammar it cannot be encoded):
+        </div>
+        <input class="own-input" id="ownInput" type="text" spellcheck="false" oninput="checkOwn()" placeholder="paste a Tier 6 string, or any text">
+        <div class="roundtrip-step" style="margin-top: 8px;"><span id="rtOwn" style="color: #94a3b8;"></span></div>
       </div>
     </div>
 
@@ -444,7 +543,7 @@
     <div class="card">
       <div class="card-title">
         <span>Complete Compression Matrix Across All Layers</span>
-        <span class="tag">Empirical Data</span>
+        <span class="tag">Measured on this one sentence, not on text in general</span>
       </div>
       <div style="overflow-x: auto;">
         <table>
@@ -456,9 +555,9 @@
               <th>Bytes</th>
               <th>cl100k</th>
               <th>o200k</th>
-              <th>Char Saving</th>
-              <th>Token Saving</th>
-              <th>Reversibility</th>
+              <th>Char change</th>
+              <th>Token change (cl100k)</th>
+              <th>Decoder guarantee</th>
             </tr>
           </thead>
           <tbody id="tableBody">
@@ -470,139 +569,308 @@
   </div>
 
   <script>
+    // Static data for the ONE demo sentence. The strings are what symlang's Python code emits for it; the token counts
+    // were measured offline with tiktoken (cl100k_base / o200k_base). Characters and bytes are computed in this page.
+    const G_LOSSY = "Lossy: no decoder guarantee";
+    const G_TIER6 = "Exact for the grammar's states; not for other text";
+    const G_STATE = "Exact for the grammar's states only";
+    const G_CODEBOOK = "Exact for the grammar's states; needs the shared codebook";
+
     const TIERS = [
       {
         id: "orig",
         name: "Original English",
         text: "While the model starts, your PC can be slow or stop responding for 1-3 minutes (longest the first time). Strata loads 35-55 GB into your RAM and locks part of it for the graphics card. This is normal. Wait, and don't close the window. The window shows what Strata is doing.",
-        philosophy: "Standard Prose",
-        chars: 273,
-        bytes: 273,
+        philosophy: "Standard prose (the reference)",
         cl100k: 69,
         o200k: 68,
-        rev: "100%",
+        guarantee: "n/a (reference)",
         meta: false
       },
       {
         id: "tier1",
         name: "Tier 1: SymTelegraph",
         text: "Model starting: PC slow/unresponsive 1-3m (longest 1st time). Strata loads 35-55GB into RAM, locks part for GPU. Normal. Wait; keep window open to view progress.",
-        philosophy: "Human Shorthand",
-        chars: 161,
-        bytes: 161,
+        philosophy: "Human shorthand",
         cl100k: 47,
         o200k: 47,
-        rev: "100%",
+        guarantee: G_LOSSY,
         meta: false
       },
       {
         id: "tier2",
         name: "Tier 2: SymLogic-ASCII",
         text: "^Model:start => PC(~slow|!freeze) @1-3m (*1st=max). Strata:35-55GB->RAM+GPU_lock. [OK]. WAIT; !close(WIN): WIN=status(Strata).",
-        philosophy: "First-Order Logic",
-        chars: 126,
-        bytes: 126,
+        philosophy: "First-order-logic style",
         cl100k: 48,
         o200k: 49,
-        rev: "100%",
+        guarantee: G_LOSSY,
         meta: false
       },
       {
         id: "tier3",
         name: "Tier 3: SymNano",
         text: "M.init>PC.lag(1-3m,1st=max)|S.ram(35-55G+gpu)|OK|wait;!x(win):win=obs(S)",
-        philosophy: "Radix Token-Optimized",
-        chars: 72,
-        bytes: 72,
+        philosophy: "Radix, token-optimised",
         cl100k: 39,
         o200k: 40,
-        rev: "100%",
+        guarantee: G_LOSSY,
         meta: false
       },
       {
         id: "tier6",
-        name: "Tier 6: SymOperator-Ultra",
+        name: "Tier 6: SymOperator",
         text: "▶M⇒PC~0 1-3m(1st:max).S:35-55G→RAM+GPU.✓ok.⏳¬✕win:win=👁S",
-        philosophy: "Dense Semantic Operator",
-        chars: 56,
-        bytes: 72,
+        philosophy: "Dense operator form of the grammar's state",
         cl100k: 48,
         o200k: 43,
-        rev: "100%",
-        meta: false
+        guarantee: G_TIER6,
+        meta: true
       },
       {
         id: "tier7",
-        name: "Layer 7: SymTensor (Ψ)",
+        name: "Layer 7: SymTensor",
         text: "Ψ⟨M⇒PC~0@1-3m*1st:max;S:35-55G→RAM+GPU;ok;win=👁S⟩",
-        philosophy: "Algebraic State Tensor",
-        chars: 49,
-        bytes: 61,
+        philosophy: "Algebraic state tensor",
         cl100k: 41,
         o200k: 40,
-        rev: "Proven Bijective",
+        guarantee: G_STATE,
         meta: true
       },
       {
         id: "tier8",
-        name: "Layer 8: SymRadix (Ω)",
+        name: "Layer 8: SymRadix",
         text: "Ω[M·PC·~0·1-3m·1st:max·S·35-55G·RAM·GPU·ok·win]",
-        philosophy: "Canonical Position Vector",
-        chars: 47,
-        bytes: 58,
+        philosophy: "Canonical position vector",
         cl100k: 33,
         o200k: 32,
-        rev: "Proven Bijective",
+        guarantee: G_STATE,
         meta: true
       },
       {
         id: "tier9a",
         name: "Layer 9A: SymBase85",
-        text: "§009dR69N|r2pa<",
-        philosophy: "Exact Radix-85 Stream",
-        chars: 15,
-        bytes: 16,
-        cl100k: 10,
-        o200k: 11,
-        rev: "Proven Bijective",
+        text: "§00000000000000",
+        philosophy: "Radix-85 stream of slot indices",
+        cl100k: 6,
+        o200k: 6,
+        guarantee: G_STATE,
         meta: true
       },
       {
         id: "tier9b",
-        name: "Layer 9B: SymRune (16-bit)",
-        text: "丁夏愂攉嘛凿",
-        philosophy: "16-bit Mathematical Runes",
-        chars: 6,
-        bytes: 18,
-        cl100k: 13,
-        o200k: 9,
-        rev: "Proven Bijective",
+        name: "Layer 9B: SymRune",
+        text: "一一一一一仿",
+        philosophy: "16-bit runes of slot indices",
+        cl100k: 7,
+        o200k: 7,
+        guarantee: G_STATE,
         meta: true
       },
       {
         id: "tier10",
-        name: "Layer 10: SymGodel (ℕ)",
-        text: "309489936188226982260513539",
-        philosophy: "Unique BigInteger in ℕ",
-        chars: 27,
-        bytes: 27,
+        name: "Layer 10: SymGodel",
+        text: "309485009821345068724781056",
+        philosophy: "One big integer from the slot-index bytes",
         cl100k: 9,
         o200k: 9,
-        rev: "Proven Bijective",
+        guarantee: G_STATE,
+        meta: true
+      },
+      {
+        id: "tier11",
+        name: "Layer 11: SymTriad",
+        text: "!!!",
+        philosophy: "State id in 3 ASCII characters",
+        cl100k: 1,
+        o200k: 1,
+        guarantee: G_CODEBOOK,
+        meta: true
+      },
+      {
+        id: "tier12",
+        name: "Layer 12: SymSingular",
+        text: "𐀀",
+        philosophy: "State id as 1 code point (U+10000 here)",
+        cl100k: 4,
+        o200k: 4,
+        guarantee: G_CODEBOOK,
         meta: true
       }
     ];
 
-    let currentTierIdx = 8; // Default to Layer 9B: SymRune (6 chars)
+    // Characters = Unicode code points (what Python's len() counts); bytes = UTF-8 length.
+    const encoder = new TextEncoder();
+    TIERS.forEach((t) => {
+      t.chars = Array.from(t.text).length;
+      t.bytes = encoder.encode(t.text).length;
+    });
+
+    // ---- The one grammar, as in symlang/meta_tier.py (DOMAIN_SLOTS), computed in this page ----
+    const SLOTS = [
+      ["trigger_entity", ["M", "SYS", "APP", "OS"]],
+      ["target_entity",  ["PC", "HOST", "CLIENT"]],
+      ["degraded_state", ["~0", "~", "0", "!"]],
+      ["duration",       ["1-3m", "1-5m", "2-4m", "<1m"]],
+      ["condition",      ["1st:max", "max", "init:max", "cold"]],
+      ["alloc_entity",   ["S", "SYS"]],
+      ["alloc_amount",   ["35-55G", "16-32G", "8-16G", ">64G"]],
+      ["target_hw1",     ["RAM", "VRAM"]],
+      ["target_hw2",     ["GPU", "CPU"]],
+      ["assert_state",   ["ok", "norm", "valid", "ready"]],
+      ["window_entity",  ["win", "app", "ui"]]
+    ];
+    const TOTAL = SLOTS.reduce((n, s) => n * s[1].length, 1); // 294912
+
+    function idToVec(id) {
+      if (!Number.isInteger(id) || id < 0 || id >= TOTAL) throw new RangeError("state id " + id + " is outside [0, " + TOTAL + ")");
+      let rem = id;
+      return SLOTS.map((s) => {
+        const i = rem % s[1].length;
+        rem = Math.floor(rem / s[1].length);
+        return s[1][i];
+      });
+    }
+    function vecToId(vec) {
+      let id = 0, mul = 1;
+      for (let k = 0; k < SLOTS.length; k++) {
+        const i = SLOTS[k][1].indexOf(vec[k]);
+        if (i < 0) throw new RangeError("'" + vec[k] + "' is not in the closed domain of slot '" + SLOTS[k][0] + "'");
+        id += i * mul;
+        mul *= SLOTS[k][1].length;
+      }
+      return id;
+    }
+    function emitTier6(v) {
+      return "▶" + v[0] + "⇒" + v[1] + v[2] + " " + v[3] + "(" + v[4] + ")." + v[5] + ":" + v[6] + "→" +
+        v[7] + "+" + v[8] + ".✓" + v[9] + ".⏳¬✕" + v[10] + ":" + v[10] + "=👁" + v[5];
+    }
+    const T6_RE = /^▶([A-Za-z0-9_]+)⇒([A-Za-z0-9_]+)([~0!]+)\s+([0-9a-zA-Z\-<]+)\(([^)]+)\)\.([A-Za-z0-9_]+):([0-9a-zA-Z\-<>]+)→([A-Za-z0-9_]+)\+([A-Za-z0-9_]+)\.✓([A-Za-z0-9_]+)\.⏳¬✕([A-Za-z0-9_]+):([A-Za-z0-9_]+)=👁([A-Za-z0-9_]+)$/;
+    function parseTier6(text) {
+      const m = T6_RE.exec(text.trim());
+      if (!m || m[11] !== m[12] || m[6] !== m[13]) return null;
+      return [m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11]];
+    }
+    function toRadix(v) { return "Ω[" + v.join("·") + "]"; }
+    function fromRadix(s) {
+      if (!(s.startsWith("Ω[") && s.endsWith("]"))) throw new RangeError("not a Layer 8 string");
+      return s.slice(2, -1).split("·");
+    }
+    function toTriad(id) {
+      const chars = [];
+      let val = id;
+      for (let i = 0; i < 3; i++) { chars.push(String.fromCharCode(33 + (val % 85))); val = Math.floor(val / 85); }
+      return chars.reverse().join("");
+    }
+    function fromTriad(s) {
+      if (s.length !== 3) throw new RangeError("expected 3 ASCII characters");
+      let val = 0;
+      for (const c of s) val = val * 85 + (c.charCodeAt(0) - 33);
+      if (val < 0 || val >= TOTAL) throw new RangeError("state id " + val + " is outside [0, " + TOTAL + ")");
+      if (toTriad(val) !== s) throw new RangeError("'" + s + "' is not the canonical triad of its state");
+      return val;
+    }
+    function toGlyph(id) { return String.fromCodePoint(0x10000 + id); }
+    function fromGlyph(g) {
+      const cps = Array.from(g);
+      if (cps.length !== 1) throw new RangeError("expected 1 code point");
+      const id = g.codePointAt(0) - 0x10000;
+      if (id < 0 || id >= TOTAL) throw new RangeError("state id " + id + " is outside [0, " + TOTAL + ")");
+      return id;
+    }
+
+    // One state through every code and back. Returns the codes and whether every decode reproduced the state.
+    function checkState(id) {
+      const vec = idToVec(id);
+      const t6 = emitTier6(vec), radix = toRadix(vec), triad = toTriad(id), glyph = toGlyph(id);
+      const t6vec = parseTier6(t6);
+      const ok = t6vec !== null && vecToId(t6vec) === id &&
+        vecToId(fromRadix(radix)) === id && fromTriad(triad) === id && fromGlyph(glyph) === id;
+      return { id, vec, t6, radix, triad, glyph, ok };
+    }
+
+    function showState(id) {
+      const r = checkState(id);
+      const hex = r.glyph.codePointAt(0).toString(16).toUpperCase();
+      document.getElementById("rtState").textContent = "state " + r.id.toLocaleString("en-US") + " of " + TOTAL.toLocaleString("en-US") + "  [" + r.vec.join(", ") + "]";
+      document.getElementById("rtTier6").textContent = r.t6;
+      document.getElementById("rtRadix").textContent = r.radix;
+      document.getElementById("rtTriad").textContent = r.triad;
+      document.getElementById("rtGlyph").textContent = r.glyph + "  (U+" + hex + ")";
+      const res = document.getElementById("rtResult");
+      res.textContent = r.ok ? "Tier 6, Layer 8, 11 and 12 each decode back to the same state" : "MISMATCH: a code did not decode back to this state";
+      res.className = r.ok ? "verdict-ok" : "verdict-bad";
+    }
+    function randomState() { showState(Math.floor(Math.random() * TOTAL)); }
+
+    function checkAllStates() {
+      const out = document.getElementById("rtAll");
+      out.textContent = "Checking all " + TOTAL.toLocaleString("en-US") + " states...";
+      out.className = "";
+      setTimeout(() => {
+        const t0 = performance.now();
+        const triads = new Set(), glyphs = new Set(), tier6s = new Set();
+        let bad = 0, firstBad = -1;
+        for (let id = 0; id < TOTAL; id++) {
+          const r = checkState(id);
+          triads.add(r.triad); glyphs.add(r.glyph); tier6s.add(r.t6);
+          if (!r.ok) { bad++; if (firstBad < 0) firstBad = id; }
+        }
+        const ms = Math.round(performance.now() - t0);
+        const distinct = triads.size === TOTAL && glyphs.size === TOTAL && tier6s.size === TOTAL;
+        if (bad === 0 && distinct) {
+          out.textContent = "PASS: all " + TOTAL.toLocaleString("en-US") + " states round-trip through Tier 6, Layer 8, 11 and 12, and each has a distinct Tier 6 string, triad and glyph (" + ms + " ms). This proves the code <-> state bijection for this one grammar, nothing about other text or token cost.";
+          out.className = "verdict-ok";
+        } else {
+          out.textContent = "FAIL: " + bad + " states did not round-trip (first: " + firstBad + "); distinct codes: " + (distinct ? "yes" : "no");
+          out.className = "verdict-bad";
+        }
+      }, 30);
+    }
+
+    function checkOwn() {
+      const text = document.getElementById("ownInput").value;
+      const out = document.getElementById("rtOwn");
+      if (!text.trim()) { out.textContent = ""; out.className = ""; return; }
+      const vec = parseTier6(text);
+      if (!vec) {
+        out.textContent = "Not a Tier 6 string of this grammar. These layers cannot encode it; it is not parsed, guessed or compressed, and the token-aware router would send it Direct (0% saving).";
+        out.className = "verdict-bad";
+        return;
+      }
+      try {
+        const id = vecToId(vec);
+        out.textContent = "In the grammar: state " + id.toLocaleString("en-US") + ", Layer 11 '" + toTriad(id) + "', Layer 12 U+" + (0x10000 + id).toString(16).toUpperCase();
+        out.className = "verdict-ok";
+      } catch (e) {
+        out.textContent = "It parses as Tier 6 but is outside the grammar: " + e.message + ". Layers 11 and 12 refuse it (the Python code raises ValueError).";
+        out.className = "verdict-bad";
+      }
+    }
+
+    // ---- Viewer ----
+    let currentTierIdx = TIERS.findIndex((t) => t.id === "tier8"); // Layer 8 (SymRadix)
+
+    function pctChange(value, base) { return (value / base - 1) * 100; }
+    function fmtSigned(pct) {
+      if (Math.abs(pct) < 0.05) return "0.0%";
+      return (pct > 0 ? "+" : "") + pct.toFixed(1) + "%";
+    }
 
     function init() {
       const nav = document.getElementById("tierNav");
       nav.innerHTML = "";
       TIERS.forEach((tier, idx) => {
         const btn = document.createElement("button");
-        btn.className = `tier-btn ${tier.meta ? 'meta-btn' : ''} ${idx === currentTierIdx ? 'active' : ''}`;
-        const pct = Math.round((1 - tier.chars / TIERS[0].chars) * 100);
-        btn.innerHTML = `<span>${tier.name}</span> <span class="pill-comp">${tier.chars}c (${pct > 0 ? '-' + pct + '%' : '0%'})</span>`;
+        btn.className = "tier-btn " + (tier.meta ? "meta-btn " : "") + (idx === currentTierIdx ? "active" : "");
+        const pill = document.createElement("span");
+        pill.className = "pill-comp";
+        pill.textContent = tier.chars + "c (" + fmtSigned(pctChange(tier.chars, TIERS[0].chars)) + ")";
+        const label = document.createElement("span");
+        label.textContent = tier.name;
+        btn.appendChild(label);
+        btn.appendChild(document.createTextNode(" "));
+        btn.appendChild(pill);
         btn.onclick = () => selectTier(idx);
         nav.appendChild(btn);
       });
@@ -611,53 +879,74 @@
       tbody.innerHTML = "";
       TIERS.forEach((t) => {
         const tr = document.createElement("tr");
-        const charPct = ((1 - t.chars / TIERS[0].chars) * 100).toFixed(1);
-        const tokPct = ((1 - t.cl100k / TIERS[0].cl100k) * 100).toFixed(1);
-        tr.innerHTML = `
-          <td class="td-tier">${t.name}</td>
-          <td>${t.philosophy}</td>
-          <td class="td-num">${t.chars}</td>
-          <td class="td-num">${t.bytes}</td>
-          <td class="td-num">${t.cl100k}</td>
-          <td class="td-num">${t.o200k}</td>
-          <td><span class="reduction-badge">-${charPct}%</span></td>
-          <td><span class="reduction-badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">-${tokPct}%</span></td>
-          <td style="color: #38bdf8; font-weight: 600;">${t.rev}</td>
-        `;
+        const charPct = pctChange(t.chars, TIERS[0].chars);
+        const tokPct = pctChange(t.cl100k, TIERS[0].cl100k);
+        const cells = [
+          ["td-tier", t.name],
+          ["", t.philosophy],
+          ["td-num", t.chars],
+          ["td-num", t.bytes],
+          ["td-num", t.cl100k],
+          ["td-num", t.o200k]
+        ];
+        cells.forEach(([cls, val]) => {
+          const td = document.createElement("td");
+          if (cls) td.className = cls;
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        [charPct, tokPct].forEach((pct) => {
+          const td = document.createElement("td");
+          const badge = document.createElement("span");
+          badge.className = "reduction-badge" + (pct > 0.05 ? " worse" : "");
+          badge.textContent = fmtSigned(pct);
+          td.appendChild(badge);
+          tr.appendChild(td);
+        });
+        const g = document.createElement("td");
+        g.style.color = "#38bdf8";
+        g.style.fontWeight = "600";
+        g.textContent = t.guarantee;
+        tr.appendChild(g);
         tbody.appendChild(tr);
       });
 
       renderTier(currentTierIdx);
+      showState(0); // the demo sentence is state 0: the first value of every slot
     }
 
     function selectTier(idx) {
       currentTierIdx = idx;
-      const btns = document.querySelectorAll(".tier-btn");
-      btns.forEach((b, i) => {
-        b.classList.toggle("active", i === idx);
-      });
+      document.querySelectorAll(".tier-btn").forEach((b, i) => b.classList.toggle("active", i === idx));
       renderTier(idx);
     }
 
     function renderTier(idx) {
       const t = TIERS[idx];
       const orig = TIERS[0];
-      const charReduction = ((1 - t.chars / orig.chars) * 100).toFixed(1);
+      const charPct = pctChange(t.chars, orig.chars);
+      const tokPct = pctChange(t.cl100k, orig.cl100k);
+      const shown = t.id === "tier12" ? t.text + "   (U+" + t.text.codePointAt(0).toString(16).toUpperCase() + ", may render as an empty box without a font for it)" : t.text;
 
-      document.getElementById("encodedDisplay").textContent = t.text;
+      document.getElementById("encodedDisplay").textContent = shown;
       document.getElementById("statChars").textContent = t.chars;
       document.getElementById("statBytes").textContent = t.bytes;
       document.getElementById("statTokens").textContent = t.cl100k;
-      document.getElementById("statSaving").textContent = `-${charReduction}%`;
-      document.getElementById("reductionPct").textContent = `${charReduction}% reduction`;
-      document.getElementById("meterFill").style.width = `${charReduction}%`;
-      document.getElementById("rtInput").textContent = `Selected: ${t.name} -> "${t.text}"`;
+      document.getElementById("statSaving").textContent = fmtSigned(charPct);
+      const tokEl = document.getElementById("statTokChange");
+      tokEl.textContent = fmtSigned(tokPct);
+      tokEl.style.color = tokPct > 0.05 ? "#fb7185" : "";
+      document.getElementById("reductionPct").textContent = fmtSigned(charPct) + " characters vs the original (tokens: " + fmtSigned(tokPct) + ")";
+      document.getElementById("meterFill").style.width = Math.max(0, Math.min(100, -charPct)) + "%";
     }
 
     function copyCurrent() {
       const text = TIERS[currentTierIdx].text;
-      navigator.clipboard.writeText(text);
-      alert("Copied to clipboard: " + text);
+      try {
+        navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard: " + text), () => alert("Could not copy; select the text manually."));
+      } catch (e) {
+        alert("Could not copy; select the text manually.");
+      }
     }
 
     window.onload = init;

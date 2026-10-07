@@ -24,3 +24,7 @@ env/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Derived from the PRIVATE Deterministic Coder repo: regenerate locally, never publish
+corpus/data/
+symlang/library/data/

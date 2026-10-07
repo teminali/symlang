@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "symlang"
 version = "1.0.0"
-description = "High-performance neuro-symbolic compression engine & token optimizer for LLMs"
+description = "Experimental symbolic encodings for one fixed grammar, a lossless zlib codec, and a token-aware, round-trip-verified router (alpha)"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
@@ -22,7 +22,7 @@ keywords = [
     "information-theory"
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
@@ -49,7 +49,7 @@ dev = [
 symlang = "cli:main"
 
 [project.urls]
-Homepage = "https://github.com/symlang/symlang"
-Documentation = "https://github.com/symlang/symlang#readme"
-Repository = "https://github.com/symlang/symlang"
-Issues = "https://github.com/symlang/symlang/issues"
+Homepage = "https://github.com/teminali/symlang"
+Documentation = "https://github.com/teminali/symlang#readme"
+Repository = "https://github.com/teminali/symlang"
+Issues = "https://github.com/teminali/symlang/issues"

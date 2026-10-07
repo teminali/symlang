@@ -1,12 +1,17 @@
-"""Universal Lossless Symbolic Codec for Arbitrary Text, Indented Code, and Prompts.
+"""Generic lossless codec: UTF-8 -> zlib (DEFLATE) -> Unicode runes or Base85.
 
-Preserves 100% of:
-- Newlines (\n, \r\n) and blank lines
-- Indentation (spaces, tabs, nested code blocks)
-- Source code in any language (Python, JavaScript, SQL, C++, JSON)
-- Punctuation, symbols, quotes, and unicode emojis
+What it is: an exact round trip for arbitrary text (newlines, indentation, code, emoji all survive byte-for-byte,
+verified by tests). Savings are in CHARACTERS: typically 60-85% fewer characters on code and prose of a few hundred
+characters or more.
 
-Achieves 70-85% compression on arbitrary code and multi-paragraph prompts.
+What it is not: a token saver. The output is DEFLATE bytes shown as code points or Base85 text, which BPE tokenizers
+split into many tokens, so it costs about 1.8-4x MORE tokens than the raw text (measured in cl100k_base and o200k_base;
+run `python benchmark_tokens.py`). It is also opaque: an LLM cannot read or inflate it. Use it for storage and transport
+between your own systems, never as a prompt compression. Short inputs may not shrink at all (zlib header + checksum
+cost 8 bytes).
+
+Rune layout: `encode_to_runes` packs two DEFLATE bytes per character into Unicode plane 1 (U+10000..U+1FFFF); an odd
+stream is padded with one 0xFF byte that the decoder strips.
 """
 
 import zlib
@@ -77,7 +82,7 @@ class UniversalExactCodec:
 
     @staticmethod
     def benchmark_arbitrary_content(content: str, name: str = "Sample") -> Dict[str, Any]:
-        """Runs full benchmark and validates 100% exact whitespace and indentation fidelity."""
+        """Round-trips `content` through both codecs and reports CHARACTER reductions (not token counts; see benchmark_tokens.py)."""
         rune_repr = UniversalExactCodec.encode_to_runes(content)
         recovered_rune = UniversalExactCodec.decode_from_runes(rune_repr)
         
