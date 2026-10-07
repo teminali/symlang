@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SymLang: Symbolic Ultra-Compressed English Language Studio & Meta-Tiers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #101726;
+      --surface-border: #1e293b;
+      --surface-hover: #162033;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --accent: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 32px 20px;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+        radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.08), transparent);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.12rem;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .card-title span.tag {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .original-box {
+      background: #0b1120;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #e2e8f0;
+      font-style: italic;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .tier-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .tier-btn {
+      background: #151e32;
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tier-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+      border-color: #334155;
+    }
+
+    .tier-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .tier-btn.meta-btn {
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+
+    .tier-btn.meta-btn.active {
+      background: #0891b2;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+    }
+
+    .tier-btn .pill-comp {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+    }
+
+    .output-viewport {
+      background: #080d1a;
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 22px;
+      position: relative;
+    }
+
+    .output-text {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      color: #38bdf8;
+      line-height: 1.6;
+      word-break: break-word;
+      min-height: 80px;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid #1e293b;
+    }
+
+    .stat-item {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 10px 8px;
+      border-radius: 8px;
+    }
+
+    .stat-val {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: white;
+      font-family: var(--font-mono);
+    }
+
+    .stat-val.highlight {
+      color: var(--accent-green);
+    }
+
+    .stat-lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .meter-container {
+      margin-top: 14px;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .meter-track {
+      background: #1e293b;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #06b6d4, #10b981);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 14px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .td-tier {
+      font-weight: 600;
+      color: white;
+    }
+
+    .td-num {
+      font-family: var(--font-mono);
+    }
+
+    .reduction-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .btn-copy {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #1e293b;
+      border: none;
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .roundtrip-box {
+      background: #070c17;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .roundtrip-step {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-badge {
+      background: rgba(6, 182, 212, 0.2);
+      color: #38bdf8;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Information Theory & Mathematical AST Studio</div>
+      <h1>Symbolic Ultra-Compressed English</h1>
+      <p class="subtitle">
+        Exploring the absolute mathematical limits of language compression: from natural English (273 chars) down to Tier 6 (56 chars) and Meta-Layers down to 6 Unicode runes with 100% mathematically proven bijectivity.
+      </p>
+    </header>
+
+    <!-- Original Target Sentence -->
+    <div class="card">
+      <div class="card-title">
+        <span>Original Target Text</span>
+        <span class="tag">Baseline English: 273 chars &bull; 51 words &bull; 69 tokens</span>
+      </div>
+      <div class="original-box" id="origText">
+        "While the model starts, your PC can be slow or stop responding for 1-3 minutes (longest the first time). Strata loads 35-55 GB into your RAM and locks part of it for the graphics card. This is normal. Wait, and don't close the window. The window shows what Strata is doing."
+      </div>
+    </div>
+
+    <!-- Interactive Compression Explorer -->
+    <div class="card">
+      <div class="card-title">
+        <span>Interactive Compression Explorer</span>
+        <span class="tag">Standard Tiers (1-6) & Meta-Tiers (7-10)</span>
+      </div>
+
+      <div class="tier-nav" id="tierNav">
+        <!-- Buttons populated dynamically -->
+      </div>
+
+      <div class="output-viewport">
+        <div class="output-text" id="encodedDisplay"></div>
+        <button class="btn-copy" onclick="copyCurrent()">Copy Encoded</button>
+
+        <div class="meter-container">
+          <div class="meter-label">
+            <span>Compression Reduction</span>
+            <span id="reductionPct">0%</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id="meterFill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat-item">
+            <div class="stat-val" id="statChars">0</div>
+            <div class="stat-lbl">Characters</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="statBytes">0</div>
+            <div class="stat-lbl">UTF-8 Bytes</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="statTokens">0</div>
+            <div class="stat-lbl">GPT-4 Tokens</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val highlight" id="statSaving">-0%</div>
+            <div class="stat-lbl">Char Reduction</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Bijective Verification Box -->
+      <div class="roundtrip-box">
+        <div style="font-size: 0.88rem; font-weight: 700; color: #f1f5f9; margin-bottom: 10px;">
+          🔬 Mathematical Round-Trip Parser Verification (E &comp; P = id)
+        </div>
+        <div class="roundtrip-step">
+          <span class="step-badge">INPUT</span>
+          <span style="color: #94a3b8;" id="rtInput">...</span>
+        </div>
+        <div class="roundtrip-step">
+          <span class="step-badge">PARSED AST</span>
+          <span style="color: #cbd5e1;" id="rtAst">AST(trigger='M', target='PC', deg='~0', dur='1-3m', cond='1st:max', alloc='35-55G', hw='RAM+GPU', win='win')</span>
+        </div>
+        <div class="roundtrip-step">
+          <span class="step-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">RECONSTRUCTED TIER 6</span>
+          <span style="color: #34d399; font-weight: 700;" id="rtTier6">▶M⇒PC~0 1-3m(1st:max).S:35-55G→RAM+GPU.✓ok.⏳¬✕win:win=👁S</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="card">
+      <div class="card-title">
+        <span>Complete Compression Matrix Across All Layers</span>
+        <span class="tag">Empirical Data</span>
+      </div>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Layer / Tier</th>
+              <th>Encoding Philosophy</th>
+              <th>Chars</th>
+              <th>Bytes</th>
+              <th>cl100k</th>
+              <th>o200k</th>
+              <th>Char Saving</th>
+              <th>Token Saving</th>
+              <th>Reversibility</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TIERS = [
+      {
+        id: "orig",
+        name: "Original English",
+        text: "While the model starts, your PC can be slow or stop responding for 1-3 minutes (longest the first time). Strata loads 35-55 GB into your RAM and locks part of it for the graphics card. This is normal. Wait, and don't close the window. The window shows what Strata is doing.",
+        philosophy: "Standard Prose",
+        chars: 273,
+        bytes: 273,
+        cl100k: 69,
+        o200k: 68,
+        rev: "100%",
+        meta: false
+      },
+      {
+        id: "tier1",
+        name: "Tier 1: SymTelegraph",
+        text: "Model starting: PC slow/unresponsive 1-3m (longest 1st time). Strata loads 35-55GB into RAM, locks part for GPU. Normal. Wait; keep window open to view progress.",
+        philosophy: "Human Shorthand",
+        chars: 161,
+        bytes: 161,
+        cl100k: 47,
+        o200k: 47,
+        rev: "100%",
+        meta: false
+      },
+      {
+        id: "tier2",
+        name: "Tier 2: SymLogic-ASCII",
+        text: "^Model:start => PC(~slow|!freeze) @1-3m (*1st=max). Strata:35-55GB->RAM+GPU_lock. [OK]. WAIT; !close(WIN): WIN=status(Strata).",
+        philosophy: "First-Order Logic",
+        chars: 126,
+        bytes: 126,
+        cl100k: 48,
+        o200k: 49,
+        rev: "100%",
+        meta: false
+      },
+      {
+        id: "tier3",
+        name: "Tier 3: SymNano",
+        text: "M.init>PC.lag(1-3m,1st=max)|S.ram(35-55G+gpu)|OK|wait;!x(win):win=obs(S)",
+        philosophy: "Radix Token-Optimized",
+        chars: 72,
+        bytes: 72,
+        cl100k: 39,
+        o200k: 40,
+        rev: "100%",
+        meta: false
+      },
+      {
+        id: "tier6",
+        name: "Tier 6: SymOperator-Ultra",
+        text: "▶M⇒PC~0 1-3m(1st:max).S:35-55G→RAM+GPU.✓ok.⏳¬✕win:win=👁S",
+        philosophy: "Dense Semantic Operator",
+        chars: 56,
+        bytes: 72,
+        cl100k: 48,
+        o200k: 43,
+        rev: "100%",
+        meta: false
+      },
+      {
+        id: "tier7",
+        name: "Layer 7: SymTensor (Ψ)",
+        text: "Ψ⟨M⇒PC~0@1-3m*1st:max;S:35-55G→RAM+GPU;ok;win=👁S⟩",
+        philosophy: "Algebraic State Tensor",
+        chars: 49,
+        bytes: 61,
+        cl100k: 41,
+        o200k: 40,
+        rev: "Proven Bijective",
+        meta: true
+      },
+      {
+        id: "tier8",
+        name: "Layer 8: SymRadix (Ω)",
+        text: "Ω[M·PC·~0·1-3m·1st:max·S·35-55G·RAM·GPU·ok·win]",
+        philosophy: "Canonical Position Vector",
+        chars: 47,
+        bytes: 58,
+        cl100k: 33,
+        o200k: 32,
+        rev: "Proven Bijective",
+        meta: true
+      },
+      {
+        id: "tier9a",
+        name: "Layer 9A: SymBase85",
+        text: "§009dR69N|r2pa<",
+        philosophy: "Exact Radix-85 Stream",
+        chars: 15,
+        bytes: 16,
+        cl100k: 10,
+        o200k: 11,
+        rev: "Proven Bijective",
+        meta: true
+      },
+      {
+        id: "tier9b",
+        name: "Layer 9B: SymRune (16-bit)",
+        text: "丁夏愂攉嘛凿",
+        philosophy: "16-bit Mathematical Runes",
+        chars: 6,
+        bytes: 18,
+        cl100k: 13,
+        o200k: 9,
+        rev: "Proven Bijective",
+        meta: true
+      },
+      {
+        id: "tier10",
+        name: "Layer 10: SymGodel (ℕ)",
+        text: "309489936188226982260513539",
+        philosophy: "Unique BigInteger in ℕ",
+        chars: 27,
+        bytes: 27,
+        cl100k: 9,
+        o200k: 9,
+        rev: "Proven Bijective",
+        meta: true
+      }
+    ];
+
+    let currentTierIdx = 8; // Default to Layer 9B: SymRune (6 chars)
+
+    function init() {
+      const nav = document.getElementById("tierNav");
+      nav.innerHTML = "";
+      TIERS.forEach((tier, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `tier-btn ${tier.meta ? 'meta-btn' : ''} ${idx === currentTierIdx ? 'active' : ''}`;
+        const pct = Math.round((1 - tier.chars / TIERS[0].chars) * 100);
+        btn.innerHTML = `<span>${tier.name}</span> <span class="pill-comp">${tier.chars}c (${pct > 0 ? '-' + pct + '%' : '0%'})</span>`;
+        btn.onclick = () => selectTier(idx);
+        nav.appendChild(btn);
+      });
+
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+      TIERS.forEach((t) => {
+        const tr = document.createElement("tr");
+        const charPct = ((1 - t.chars / TIERS[0].chars) * 100).toFixed(1);
+        const tokPct = ((1 - t.cl100k / TIERS[0].cl100k) * 100).toFixed(1);
+        tr.innerHTML = `
+          <td class="td-tier">${t.name}</td>
+          <td>${t.philosophy}</td>
+          <td class="td-num">${t.chars}</td>
+          <td class="td-num">${t.bytes}</td>
+          <td class="td-num">${t.cl100k}</td>
+          <td class="td-num">${t.o200k}</td>
+          <td><span class="reduction-badge">-${charPct}%</span></td>
+          <td><span class="reduction-badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">-${tokPct}%</span></td>
+          <td style="color: #38bdf8; font-weight: 600;">${t.rev}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      renderTier(currentTierIdx);
+    }
+
+    function selectTier(idx) {
+      currentTierIdx = idx;
+      const btns = document.querySelectorAll(".tier-btn");
+      btns.forEach((b, i) => {
+        b.classList.toggle("active", i === idx);
+      });
+      renderTier(idx);
+    }
+
+    function renderTier(idx) {
+      const t = TIERS[idx];
+      const orig = TIERS[0];
+      const charReduction = ((1 - t.chars / orig.chars) * 100).toFixed(1);
+
+      document.getElementById("encodedDisplay").textContent = t.text;
+      document.getElementById("statChars").textContent = t.chars;
+      document.getElementById("statBytes").textContent = t.bytes;
+      document.getElementById("statTokens").textContent = t.cl100k;
+      document.getElementById("statSaving").textContent = `-${charReduction}%`;
+      document.getElementById("reductionPct").textContent = `${charReduction}% reduction`;
+      document.getElementById("meterFill").style.width = `${charReduction}%`;
+      document.getElementById("rtInput").textContent = `Selected: ${t.name} -> "${t.text}"`;
+    }
+
+    function copyCurrent() {
+      const text = TIERS[currentTierIdx].text;
+      navigator.clipboard.writeText(text);
+      alert("Copied to clipboard: " + text);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

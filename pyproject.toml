@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "symlang"
+version = "1.0.0"
+description = "High-performance neuro-symbolic compression engine & token optimizer for LLMs"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "SymLang Open Source Contributors" }
+]
+keywords = [
+    "nlp",
+    "compression",
+    "llm",
+    "prompt-compression",
+    "neuro-symbolic",
+    "ast",
+    "tokenization",
+    "information-theory"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Archiving :: Compression"
+]
+requires-python = ">=3.10"
+dependencies = [
+    "tiktoken>=0.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "flake8>=6.0.0",
+    "black>=23.0.0"
+]
+
+[project.scripts]
+symlang = "cli:main"
+
+[project.urls]
+Homepage = "https://github.com/symlang/symlang"
+Documentation = "https://github.com/symlang/symlang#readme"
+Repository = "https://github.com/symlang/symlang"
+Issues = "https://github.com/symlang/symlang/issues"
